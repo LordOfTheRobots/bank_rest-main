@@ -21,11 +21,7 @@ public class UserDetailService implements UserDetailsService {
         Optional<User> user = userRepository.findByEmail(email);
 
         if (user.isPresent()){
-            UserDetails userDetails = org.springframework.security.core.userdetails.User.builder().
-                    username(email).
-                    password(user.get().getPassword()).
-                    authorities(user.get().getRole().getRoleName()).
-                    build();
+            UserDetails userDetails = new UserPrincipal(user.get());
         } else {
             throw new UsernameNotFoundException("User not presented in DB");
         }
