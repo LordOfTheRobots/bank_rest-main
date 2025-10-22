@@ -2,11 +2,13 @@ package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import lombok.Data;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

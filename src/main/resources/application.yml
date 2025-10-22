@@ -1,8 +1,78 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
+spring:
 
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+  application:
+    name: bank-rest
+    domain: bank.ru
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Bank_DB
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: INFO
+    com.example.bankcards: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    io.swagger.v3: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %highlight(%-5level) - %cyan(%logger{36}) - %msg%n"
+  file:
+    name: logs/application.log
+
+jwt:
+  secret: z1G&er3$aT<D0)SHMj95NmDt>E?rg,,GS^#$5lZ-9lHZTL5Qj@AWHf8}%(Q/>)z^|-lf^Ol:Vn[Oq=NNZwgLL!
+  expiration: 86400000
+  refresh-token:
+    expiration: 604800000
+  header: "Authorization"
+  prefix: "Bearer "
+
+
+app:
+  security:
+    rate-limit:
+      enabled: true
+      requests-per-minute: 100
+
+    password:
+      min-length: 8
+      require-uppercase: true
+      require-lowercase: true
+      require-numbers: true
+      require-special-chars: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+  swagger-ui:
+    enabled: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    filter: true
+    persist-authorization: true
+
+  packages-to-scan: com.example.bankcards.controller
+  paths-to-match: /api/**
+
+  group-configs:
+    - group: v1
+      paths-to-match: /api/v1/**
+
+#P.s. Я бы вынес тот же самый секрет или пароль в отдельный файл окружения, но я так понимаю всё нужно указать здесь
