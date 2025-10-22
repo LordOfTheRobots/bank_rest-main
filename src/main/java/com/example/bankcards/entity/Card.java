@@ -2,11 +2,13 @@ package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cards")
+@Data
 public class Card {
     @Id
     private Long cardId;
@@ -29,4 +31,7 @@ public class Card {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "bank_token")
+    private String bankToken;
 }
