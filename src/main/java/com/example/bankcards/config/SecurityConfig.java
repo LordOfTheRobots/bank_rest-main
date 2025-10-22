@@ -1,6 +1,7 @@
 package com.example.bankcards.config;
 
 import com.example.bankcards.security.JwtAuthenticationFilter;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 public class SecurityConfig {
 
     @Value("${spring.application.domain}")
