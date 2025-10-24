@@ -4,6 +4,8 @@ import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,14 +23,22 @@ public class UserDetailService implements UserDetailsService {
         Optional<User> user = userRepository.findByEmail(email);
 
         if (user.isPresent()){
-            UserDetails userDetails = org.springframework.security.core.userdetails.User.builder().
-                    username(email).
-                    password(user.get().getPassword()).
-                    authorities(user.get().getRole().getRoleName()).
+            UserDetails userDetails = UserPrincipal.builder().
+                    user(user.get()).
                     build();
         } else {
             throw new UsernameNotFoundException("User not presented in DB");
         }
         return null;
     }
+
+    public Authentication createAuthentication(String email){
+        UserDetails userDetails = loadUserByUsername(email);
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+    }
+
 }

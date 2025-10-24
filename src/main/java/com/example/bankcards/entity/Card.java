@@ -2,6 +2,7 @@ package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,11 +10,14 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "cards")
 @Data
+@Builder
 public class Card {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cardId;
 
     @Column(name = "card_number", nullable = false, length = 19)
+    @Pattern(regexp = "^[0-9]{12,19}$", message = "Card number must contain 12 to 19 digits")
     private String cardNumber;
 
     @Column(name = "expire_date", nullable = false, length = 5)
@@ -28,7 +32,7 @@ public class Card {
     @JoinColumn(name = "condition")
     private CardCondition condition;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     private User user;
 

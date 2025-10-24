@@ -44,10 +44,6 @@ jwt:
 
 app:
   security:
-    rate-limit:
-      enabled: true
-      requests-per-minute: 100
-
     password:
       min-length: 8
       require-uppercase: true

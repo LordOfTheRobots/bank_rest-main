@@ -1,12 +1,14 @@
 package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
 @Entity
 @Table(name = "roles")
 @Data
+@Builder
 public class Role {
     @Id
     private Integer roleId;
