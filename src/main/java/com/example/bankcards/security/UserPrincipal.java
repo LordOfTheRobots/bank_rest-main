@@ -9,9 +9,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-@Data
 @Builder
+@Data
 public class UserPrincipal implements UserDetails {
     private User user;
 

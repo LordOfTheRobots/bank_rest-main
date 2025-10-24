@@ -32,9 +32,6 @@ public class JwtTokenProvider {
     @Value("${jwt.header}")
     private String header;
 
-    @Value("${jwt.prefix}")
-    private String jwtPrefix;
-
     private SecretKey secretKey;
 
     @PostConstruct
