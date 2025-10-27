@@ -37,6 +37,7 @@ public class JwtTokenProvider {
     @PostConstruct
     public void init() {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        log.debug("JWT token provider initialized");
     }
 
     public String generateAccessToken(Authentication authentication){
@@ -44,6 +45,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + jwtExpiration);
 
+        log.debug("Generating access token for user: {}", userDetails.getUsername());
         return Jwts.builder().
                 setSubject(userDetails.getUsername()).
                 setIssuedAt(now).setExpiration(expirationDate).
@@ -56,6 +58,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + jwtRefreshTokenExpiration);
 
+        log.debug("Generating refresh token for user: {}", userDetails.getUsername());
         return Jwts.builder().
                 setSubject(userDetails.getUsername()).
                 setIssuedAt(now).setExpiration(expirationDate).
@@ -73,6 +76,7 @@ public class JwtTokenProvider {
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token);
+            log.debug("JWT token validated successfully");
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             log.error("JWT token validation error: {}", e.getMessage());
@@ -96,6 +100,4 @@ public class JwtTokenProvider {
             return true;
         }
     }
-
-
 }

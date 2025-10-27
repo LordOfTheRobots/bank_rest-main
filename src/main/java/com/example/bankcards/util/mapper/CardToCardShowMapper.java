@@ -3,8 +3,9 @@ package com.example.bankcards.util.mapper;
 import com.example.bankcards.dto.CardToShowDto;
 import com.example.bankcards.entity.Card;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
-@Qualifier("CardToCardShowMapper")
+@Component("cardToCardShowMapper")
 public class CardToCardShowMapper implements DtoMapper<CardToShowDto, Card> {
     @Override
     public CardToShowDto map(Card card) {

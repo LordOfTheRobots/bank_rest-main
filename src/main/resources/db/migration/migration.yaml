@@ -1,0 +1,218 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: system
+      changes:
+        - createSequence:
+            sequenceName: card_conditions_condition_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createSequence:
+            sequenceName: cards_card_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createSequence:
+            sequenceName: roles_role_id_seq
+            startValue: 1
+            incrementBy: 1
+
+  - changeSet:
+      id: 2
+      author: system
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_id
+                  type: integer
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(20)
+              - column:
+                  name: access_level
+                  type: integer
+
+        - createTable:
+            tableName: card_conditions
+            columns:
+              - column:
+                  name: condition_id
+                  type: integer
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar
+              - column:
+                  name: usable
+                  type: boolean
+
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    checkConstraint: "email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'"
+              - column:
+                  name: role_id
+                  type: integer
+                  defaultValue: 1
+
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: card_id
+                  type: integer
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: card_number
+                  type: varchar(19)
+              - column:
+                  name: expire_date
+                  type: varchar(5)
+                  constraints:
+                    checkConstraint: "expire_date ~ '^(0[1-9]|1[0-2])/[0-9]{2}$'"
+              - column:
+                  name: balance
+                  type: numeric
+              - column:
+                  name: condition
+                  type: integer
+              - column:
+                  name: user_id
+                  type: uuid
+              - column:
+                  name: bank_token
+                  type: varchar
+
+  - changeSet:
+      id: 3
+      author: system
+      changes:
+        - addUniqueConstraint:
+            tableName: cards
+            columnNames: expire_date, card_number
+            constraintName: unique_mask_and_expiry
+
+        - addForeignKeyConstraint:
+            baseTableName: users
+            baseColumnNames: role_id
+            referencedTableName: roles
+            referencedColumnNames: role_id
+            constraintName: users_role_id_fkey
+
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: condition
+            referencedTableName: card_conditions
+            referencedColumnNames: condition_id
+            constraintName: cards_condition_fkey
+
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            constraintName: cards_user_id_fkey
+
+  - changeSet:
+      id: 4
+      author: system
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_id
+                  value: 1
+              - column:
+                  name: name
+                  value: user
+              - column:
+                  name: access_level
+                  value: 1
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_id
+                  value: 2
+              - column:
+                  name: name
+                  value: admin
+              - column:
+                  name: access_level
+                  value: 2
+
+        - insert:
+            tableName: card_conditions
+            columns:
+              - column:
+                  name: condition_id
+                  value: 1
+              - column:
+                  name: name
+                  value: active
+              - column:
+                  name: usable
+                  value: true
+
+        - insert:
+            tableName: card_conditions
+            columns:
+              - column:
+                  name: condition_id
+                  value: 2
+              - column:
+                  name: name
+                  value: blocked
+              - column:
+                  name: usable
+                  value: false
+
+        - insert:
+            tableName: card_conditions
+            columns:
+              - column:
+                  name: condition_id
+                  value: 3
+              - column:
+                  name: name
+                  value: expired
+              - column:
+                  name: usable
+                  value: false
+
+  - changeSet:
+      id: 5
+      author: system
+      changes:
+        - sql:
+            sql: SELECT setval('card_conditions_condition_id_seq', 3, true)
+        - sql:
+            sql: SELECT setval('cards_card_id_seq', 1, false)
+        - sql:
+            sql: SELECT setval('roles_role_id_seq', 2, true)

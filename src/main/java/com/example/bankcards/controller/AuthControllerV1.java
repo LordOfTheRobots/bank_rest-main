@@ -6,6 +6,8 @@ import com.example.bankcards.service.UserAuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/")
 @AllArgsConstructor
 public class AuthControllerV1 {
+    private static final Logger logger = LoggerFactory.getLogger(AuthControllerV1.class);
 
     @Autowired
     private UserAuthService authService;
@@ -27,8 +30,10 @@ public class AuthControllerV1 {
     @RequestMapping("/sign-in")
     public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody UserAuthDto userAuthDto,
                                                HttpServletResponse response){
+        logger.info("Sign in attempt for user: {}", userAuthDto.getEmail());
         AuthResponse authResponse = authService.authenticateUser(userAuthDto);
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
+        logger.info("Sign in successful for user: {}", userAuthDto.getEmail());
         return ResponseEntity.ok()
                 .header("Authorization", jwtPrefix + authResponse.getJwt())
                 .body(authResponse);
@@ -38,8 +43,10 @@ public class AuthControllerV1 {
     @RequestMapping("/sign-up")
     public ResponseEntity<AuthResponse> signUp(@Valid @RequestBody UserAuthDto userAuthDto,
                                                HttpServletResponse response){
+        logger.info("Sign up attempt for user: {}", userAuthDto.getEmail());
         AuthResponse authResponse = authService.createUser(userAuthDto);
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
+        logger.info("Sign up successful for user: {}", userAuthDto.getEmail());
         return ResponseEntity.ok()
                 .header("Authorization", jwtPrefix + authResponse.getJwt())
                 .body(authResponse);
@@ -49,8 +56,10 @@ public class AuthControllerV1 {
     public ResponseEntity<AuthResponse> refreshToken(
             @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response) {
+        logger.debug("Refresh token request");
         AuthResponse authResponse = authService.refreshTokens(refreshToken);
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
+        logger.info("Token refreshed successfully");
 
         return ResponseEntity.ok()
                 .header("Authorization", jwtPrefix + authResponse.getJwt())

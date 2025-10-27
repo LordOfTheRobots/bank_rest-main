@@ -1,0 +1,10 @@
+com\example\bankcards\service\CardServiceTest.class
+com\example\bankcards\TestSecurityConfig.class
+com\example\bankcards\controller\AuthControllerV1Test.class
+com\example\bankcards\controller\TransactControllerV1Test.class
+com\example\bankcards\service\UserServiceTest.class
+com\example\bankcards\controller\AdminControllerV1Test.class
+com\example\bankcards\TestRepositoryConfig.class
+com\example\bankcards\service\TransactionServiceTest.class
+com\example\bankcards\service\UserAuthServiceTest.class
+com\example\bankcards\controller\UserCardsControllerV1Test.class

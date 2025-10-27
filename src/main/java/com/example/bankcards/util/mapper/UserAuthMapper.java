@@ -5,8 +5,7 @@ import com.example.bankcards.entity.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component
-@Qualifier("userAuthMap")
+@Component("userAuthMap")
 public class UserAuthMapper implements DtoMapper<User, UserAuthDto> {
     @Override
     public User map(UserAuthDto dto) {

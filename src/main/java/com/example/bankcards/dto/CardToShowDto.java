@@ -2,13 +2,13 @@ package com.example.bankcards.dto;
 
 import com.example.bankcards.entity.CardCondition;
 import jakarta.validation.constraints.Pattern;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
+@NoArgsConstructor
 @Builder
+@AllArgsConstructor
 @Data
 public class CardToShowDto {
 

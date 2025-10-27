@@ -3,10 +3,12 @@ package com.example.bankcards.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
 public class CardEnteredDto {
     @NotBlank
     @Pattern(regexp = "^[0-9]{12,19}$", message = "Card number must contain 12 to 19 digits")

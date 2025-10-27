@@ -5,8 +5,7 @@ import com.example.bankcards.entity.Card;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component
-@Qualifier("cardEnterMapper")
+@Component("cardEnterMapper")
 public class CardEnterMapper implements DtoMapper<Card, CardEnteredDto>{
 
     @Override

@@ -7,8 +7,10 @@ import com.example.bankcards.exception.NotFound;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.util.MaskCard;
 import com.example.bankcards.util.bankUtils.BankUtil;
-import com.example.bankcards.util.mapper.CardToCardShowMapper;
 import com.example.bankcards.util.mapper.DtoMapper;
+import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ import java.util.UUID;
 
 @Service
 public class CardService {
+    private static final Logger logger = LoggerFactory.getLogger(CardService.class);
+
     @Autowired
     private final CardRepository cardRepository;
 
@@ -50,12 +54,15 @@ public class CardService {
     }
 
     public void deleteCard(CardEnteredDto card){
+        logger.info("Deleting card with number: {}", card.getCardNumber());
         cardRepository.deleteByCardNumberAndExpireDate(
                 MaskCard.makeMaskOfCardNumber(card.getCardNumber()),
                 card.getExpirationDate());
+        logger.info("Card deleted successfully");
     }
 
     public boolean isCardOwner(Long cardId, UUID userId){
+        logger.debug("Checking if user {} is owner of card {}", userId, cardId);
         return cardRepository.findById(cardId).orElseThrow(
                 () -> new NotFound("Card not found")
         ).getUser().getUserId().equals(userId);
@@ -63,41 +70,52 @@ public class CardService {
 
     @Transactional
     public void addCard(CardEnteredDto cardEntered, UUID userId){
+        logger.info("Adding new card for user: {}", userId);
         Card card = mapper.map(cardEntered);
-        card.setCondition(bankUtil.checkCardCondition(card));
+        bankUtil.checkCardCondition(card);
+
         if (!userService.userExist(userId)){
+            logger.error("User not found: {}", userId);
             throw new NotFound("User not found");
         }
+        logger.info("Adding card {}", card);
         card.setUser(userService.findUserById(userId));
         card.setCardNumber(MaskCard.makeMaskOfCardNumber(card.getCardNumber()));
-        card.setBalance(bankUtil.checkCardBalance(card));
+        bankUtil.checkCardBalance(card);
         bankUtil.makeBankToken(card);
         cardRepository.save(card);
+        logger.info("Card added successfully for user: {}", userId);
     }
 
     public Page<CardToShowDto> showCards(UUID userID, Integer pageNumber, Integer pageSize){
+        logger.debug("Showing cards for user: {}, page: {}, size: {}", userID, pageNumber, pageSize);
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return cardRepository.findByUserId(userID, pageable)
                 .map(toShowMapper::map);
-
     }
 
     public Page<Card> showCards(Integer pageNumber, Integer pageSize){
+        logger.debug("Showing all cards, page: {}, size: {}", pageNumber, pageSize);
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return cardRepository.findAll(pageable);
     }
 
     public void blockCard(CardEnteredDto cardEnteredDto){
+        logger.info("Blocking card: {}", cardEnteredDto.getCardNumber());
         bankUtil.blockCard(findCard(cardEnteredDto).orElseThrow(
-                        () -> new NotFound("Card not found")));
+                () -> new NotFound("Card not found")));
+        logger.info("Card blocked successfully");
     }
 
     public void unblockCard(CardEnteredDto cardEnteredDto){
+        logger.info("Unblocking card: {}", cardEnteredDto.getCardNumber());
         bankUtil.unblockCard(findCard(cardEnteredDto).orElseThrow(
                 () -> new NotFound("Card not found")));
+        logger.info("Card unblocked successfully");
     }
 
     private Optional<Card> findCard(CardEnteredDto cardEnteredDto){
+        logger.debug("Finding card by number and expiration date");
         return cardRepository.findByCardNumberAndExpireDate(
                 MaskCard.makeMaskOfCardNumber(cardEnteredDto.getCardNumber()),
                 cardEnteredDto.getExpirationDate());
