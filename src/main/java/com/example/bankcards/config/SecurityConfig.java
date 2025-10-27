@@ -1,36 +1,33 @@
 package com.example.bankcards.config;
 
 import com.example.bankcards.security.JwtAuthenticationFilter;
+import com.example.bankcards.security.JwtTokenProvider;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SecurityConfig {
-    @Autowired
-    private CorsConfigurationSource corsConfig;
+
+
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -40,19 +37,22 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
                 cors(cors ->
                         cors.
-                                configurationSource(corsConfig)).
+                                configurationSource(corsConfigurationSource)).
                 authorizeHttpRequests(auth ->
                         auth.
-                                requestMatchers("/api/**/admin/**").hasRole("ADMIN").
-                                requestMatchers("/api/**/user/**").authenticated().
+                                requestMatchers("/api/v1/admin/**").hasRole("ADMIN").
+                                requestMatchers("/api/v1/users/**").authenticated().
+                                requestMatchers("/api/v1/transaction/**").authenticated().
+                                requestMatchers("/api/v1/sign-in", "/api/v1/sign-up", "/api/v1/refresh").permitAll().
                                 requestMatchers("/error").permitAll().
-                                requestMatchers("/v3/api-docs/**").authenticated()).
-                formLogin(form -> form.loginPage("/api/sign-up/").
-                        failureForwardUrl("/error").permitAll()).
+                                requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll().
+                                anyRequest().authenticated()).
                 addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

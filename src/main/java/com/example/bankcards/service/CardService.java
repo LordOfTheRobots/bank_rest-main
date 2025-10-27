@@ -8,7 +8,6 @@ import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.util.MaskCard;
 import com.example.bankcards.util.bankUtils.BankUtil;
 import com.example.bankcards.util.mapper.DtoMapper;
-import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,7 @@ public class CardService {
                        @Qualifier("cardEnterMapper") DtoMapper mapper,
                        BankUtil bankUtil,
                        UserService userService,
-                       @Qualifier("CardToCardShowMapper") DtoMapper toShowMapper) {
+                       @Qualifier("cardToCardShowMapper") DtoMapper toShowMapper) {
         this.cardRepository = cardRepository;
         this.mapper = mapper;
         this.bankUtil = bankUtil;
@@ -90,7 +89,7 @@ public class CardService {
     public Page<CardToShowDto> showCards(UUID userID, Integer pageNumber, Integer pageSize){
         logger.debug("Showing cards for user: {}, page: {}, size: {}", userID, pageNumber, pageSize);
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return cardRepository.findByUserId(userID, pageable)
+        return cardRepository.findByUserUserId(userID, pageable)
                 .map(toShowMapper::map);
     }
 

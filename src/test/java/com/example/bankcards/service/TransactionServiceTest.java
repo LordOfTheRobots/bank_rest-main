@@ -52,7 +52,7 @@ class TransactionServiceTest {
         Card checkedCard = new Card();
         checkedCard.setBalance(BigDecimal.valueOf(500.0));
 
-        when(cardRepository.findByCardNumberAndUserId(whereToTransact, userId))
+        when(cardRepository.findByCardNumberAndUserUserId(whereToTransact, userId))
                 .thenReturn(Optional.of(targetCard));
         when(cardRepository.findByCardNumberAndExpireDate(anyString(), any()))
                 .thenReturn(Optional.of(sourceCard));
@@ -81,7 +81,7 @@ class TransactionServiceTest {
         Card checkedCard = new Card();
         checkedCard.setBalance(BigDecimal.valueOf(500.0));
 
-        when(cardRepository.findByCardNumberAndUserId(whereToTransact, userId))
+        when(cardRepository.findByCardNumberAndUserUserId(whereToTransact, userId))
                 .thenReturn(Optional.of(targetCard));
         when(cardRepository.findByCardNumberAndExpireDate(anyString(), any()))
                 .thenReturn(Optional.of(sourceCard));
@@ -100,7 +100,7 @@ class TransactionServiceTest {
         UUID userId = UUID.randomUUID();
         Double amount = 100.0;
 
-        when(cardRepository.findByCardNumberAndUserId(whereToTransact, userId))
+        when(cardRepository.findByCardNumberAndUserUserId(whereToTransact, userId))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFound.class,

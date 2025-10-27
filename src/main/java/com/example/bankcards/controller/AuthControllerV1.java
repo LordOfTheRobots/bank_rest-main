@@ -6,6 +6,7 @@ import com.example.bankcards.service.UserAuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +17,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthControllerV1 {
     private static final Logger logger = LoggerFactory.getLogger(AuthControllerV1.class);
 
     @Autowired
-    private UserAuthService authService;
+    private final UserAuthService authService;
 
     @Value("${jwt.prefix}")
     private String jwtPrefix;

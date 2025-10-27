@@ -42,6 +42,7 @@ com\example\bankcards\controller\AuthControllerV1.class
 com\example\bankcards\security\UserDetailService.class
 com\example\bankcards\exception\GlobalExceptionHandler.class
 com\example\bankcards\service\CardService.class
+com\example\bankcards\config\JWTConfig.class
 com\example\bankcards\entity\Role.class
 com\example\bankcards\util\mapper\CardEnterMapper.class
 com\example\bankcards\controller\UserCardsControllerV1.class

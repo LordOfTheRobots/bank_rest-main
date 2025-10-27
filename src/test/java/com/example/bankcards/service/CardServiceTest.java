@@ -155,13 +155,13 @@ class CardServiceTest { //Без спая на некоторых моках т�
         Card card = new Card();
         Page<Card> cardPage = new PageImpl<>(Collections.singletonList(card));
 
-        when(cardRepository.findByUserId(userId, pageable)).thenReturn(cardPage);
+        when(cardRepository.findByUserUserId(userId, pageable)).thenReturn(cardPage);
 
         Page<CardToShowDto> result = cardService.showCards(userId, pageNumber, pageSize);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        verify(cardRepository).findByUserId(userId, pageable);
+        verify(cardRepository).findByUserUserId(userId, pageable);
     }
 
     @Test

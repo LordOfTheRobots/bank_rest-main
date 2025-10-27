@@ -33,7 +33,7 @@ public class TransactionsService {
     public void makeTransaction(CardEnteredDto cardDto, String whereToTransact, UUID userId, Double howManyToTransact){
         logger.info("Making transaction for user: {} to card: {}", userId, whereToTransact);
 
-        Optional<Card> cardToTransact = cardRepository.findByCardNumberAndUserId(whereToTransact, userId);
+        Optional<Card> cardToTransact = cardRepository.findByCardNumberAndUserUserId(whereToTransact, userId);
 
         if (cardToTransact.isPresent()){
             Card card = cardRepository.findByCardNumberAndExpireDate(

@@ -15,11 +15,6 @@ spring:
       ddl-auto: validate
     show-sql: false
 
-  liquibase:
-    change-log: classpath:/BOOT-INF/classes/db/changelog/db.changelog-master.yaml
-    enabled: true
-    default-schema: public
-
 server:
   port: 8080
   servlet:
@@ -56,27 +51,24 @@ app:
       require-numbers: true
       require-special-chars: true
 
-#springdoc:
-#  api-docs:
-#    path: /v3/api-docs
- #   enabled: true
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
 
-  #swagger-ui:
-  #  enabled: true
-  #  display-request-duration: true
-  #  filter: true
-  #  persist-authorization: true
-  #  path: /swagger-ui.html
-  #  doc-expansion: none
-  #  tags-sorter: alpha
-  #  operations-sorter: alpha
+  swagger-ui:
+    enabled: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    filter: true
+    persist-authorization: true
 
-  #group-configs:
-   # - group: v1
-   #   display-name: Bank API v1
-   #   paths-to-match: /api/v1/**
-   #   packages-to-scan:
-   #     - com.example.bankcards.controller.v1
-   #     - com.example.bankcards.controller
+  packages-to-scan: com.example.bankcards.controller
+  paths-to-match: /api/**
+
+  group-configs:
+    - group: v1
+      paths-to-match: /api/v1/**
 
 #P.s. Я бы вынес тот же самый секрет или пароль в отдельный файл окружения, но я так понимаю всё нужно указать здесь

@@ -40,5 +40,6 @@ C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\s
 C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\config\SecurityConfig.java
 C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\service\TransactionsService.java
 C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\dto\AuthResponse.java
+C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\config\JWTConfig.java
 C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\exception\TransactedMoneyIsNegativeOrZero.java
 C:\Users\32112\IdeaProjects\bank_rest-main\src\main\java\com\example\bankcards\security\JwtTokenProvider.java
