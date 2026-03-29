@@ -1,24 +1,34 @@
 package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.sql.Timestamp;
+import java.util.UUID;
 
 @Entity
 @Table(name = "card_conditions")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
 public class CardCondition {
     @Id
-    private Integer conditionId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID conditionId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "name")
-    private String conditionName;
+    private CardStatus conditionName;
 
-    @Column(name = "usable")
-    private Boolean isUsable;
+    @Column(name = "timestamp")
+    private Timestamp dateOfCondition;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id", nullable = false)
+    private Card card;
+
+    @Column(name = "comment")
+    private String comment;
 }

@@ -52,19 +52,17 @@ public class CardService {
         this.toShowMapper = toShowMapper;
     }
 
-    public void deleteCard(CardEnteredDto card){
-        logger.info("Deleting card with number: {}", card.getCardNumber());
-        cardRepository.deleteByCardNumberAndExpireDate(
-                MaskCard.makeMaskOfCardNumber(card.getCardNumber()),
-                card.getExpirationDate());
+    public void deleteCard(Long cardId){
+        logger.info("Deleting card with number: {}", cardId);
+        cardRepository.deleteById(cardId);
         logger.info("Card deleted successfully");
     }
 
-    public boolean isCardOwner(Long cardId, UUID userId){
-        logger.debug("Checking if user {} is owner of card {}", userId, cardId);
+    public boolean isCardOwner(Long cardId, String uuid){
+        logger.debug("Checking if user {} is owner of card {}", uuid, cardId);
         return cardRepository.findById(cardId).orElseThrow(
                 () -> new NotFound("Card not found")
-        ).getUser().getUserId().equals(userId);
+        ).getUser().getUserId().equals(UUID.fromString(uuid));
     }
 
     @Transactional
@@ -86,10 +84,10 @@ public class CardService {
         logger.info("Card added successfully for user: {}", userId);
     }
 
-    public Page<CardToShowDto> showCards(UUID userID, Integer pageNumber, Integer pageSize){
-        logger.debug("Showing cards for user: {}, page: {}, size: {}", userID, pageNumber, pageSize);
+    public Page<CardToShowDto> showCards(String email, Integer pageNumber, Integer pageSize){
+        logger.debug("Showing cards from user: {}, page: {}, size: {}", email, pageNumber, pageSize);
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return cardRepository.findByUserUserId(userID, pageable)
+        return cardRepository.findByUserEmail(email, pageable)
                 .map(toShowMapper::map);
     }
 
@@ -99,9 +97,9 @@ public class CardService {
         return cardRepository.findAll(pageable);
     }
 
-    public void blockCard(CardEnteredDto cardEnteredDto){
-        logger.info("Blocking card: {}", cardEnteredDto.getCardNumber());
-        bankUtil.blockCard(findCard(cardEnteredDto).orElseThrow(
+    public void blockCard(Long cardId){
+        logger.info("Blocking card");
+        bankUtil.blockCard(cardRepository.findById(cardId).orElseThrow(
                 () -> new NotFound("Card not found")));
         logger.info("Card blocked successfully");
     }
@@ -113,10 +111,18 @@ public class CardService {
         logger.info("Card unblocked successfully");
     }
 
-    private Optional<Card> findCard(CardEnteredDto cardEnteredDto){
+    public CardToShowDto getCard(Long cardId){
+        Card card = bankUtil.checkCardBalance(
+                        bankUtil.checkCardCondition(
+                            cardRepository.findById(cardId).orElseThrow(
+                    () -> new NotFound("Card not found"))));
+        return toShowMapper.map(card);
+    }
+
+    private Optional<Card> findCard(CardEnteredDto cardEnteredByAdminDto){
         logger.debug("Finding card by number and expiration date");
         return cardRepository.findByCardNumberAndExpireDate(
-                MaskCard.makeMaskOfCardNumber(cardEnteredDto.getCardNumber()),
-                cardEnteredDto.getExpirationDate());
+                MaskCard.makeMaskOfCardNumber(cardEnteredByAdminDto.getCardNumber()),
+                cardEnteredByAdminDto.getExpirationDate());
     }
 }

@@ -5,6 +5,8 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,20 +19,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
-public class JwtTokenProvider {
-    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
+@AllArgsConstructor
+public class JwtProvider {
+    private static final Logger log = LoggerFactory.getLogger(JwtProvider.class);
 
     @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final String jwtSecret;
 
     @Value("${jwt.expiration}")
-    private Long jwtExpiration;
+    private final Long jwtExpiration;
 
     @Value("${jwt.refresh-token.expiration}")
-    private Long jwtRefreshTokenExpiration;
+    private final Long jwtRefreshTokenExpiration;
 
     @Value("${jwt.header}")
-    private String header;
+    @Getter
+    private final String header;
 
     private SecretKey secretKey;
 

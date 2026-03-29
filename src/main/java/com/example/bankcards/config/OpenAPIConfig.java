@@ -26,6 +26,7 @@ public class OpenAPIConfig {
                                         .scheme("Bearer")
                                         .bearerFormat("JWT")));
     }
+
     @Bean
     public GroupedOpenApi v1Api() {
         return GroupedOpenApi.builder()

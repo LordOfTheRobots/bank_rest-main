@@ -8,8 +8,8 @@ import com.example.bankcards.exception.RefreshTokenExpired;
 import com.example.bankcards.exception.UserAlreadyExist;
 import com.example.bankcards.exception.UserDoesNotExistOrPasswordIncorrect;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.security.JwtTokenProvider;
-import com.example.bankcards.security.UserDetailService;
+import com.example.bankcards.security.JwtProvider;
+import com.example.bankcards.security.UserDetailsService;
 import com.example.bankcards.util.PasswordValidator;
 import com.example.bankcards.util.mapper.DtoMapper;
 import org.slf4j.Logger;
@@ -37,26 +37,26 @@ public class UserAuthService {
     private final PasswordEncoder encoder;
 
     @Autowired
-    private final JwtTokenProvider jwtProvider;
+    private final JwtProvider jwtProvider;
 
     @Autowired
     private final PasswordValidator passwordValidator;
 
     @Autowired
-    private final UserDetailService userDetailService;
+    private final UserDetailsService userDetailsService;
 
     public UserAuthService(UserRepository userRepository,
                            @Qualifier("userAuthMap") DtoMapper<User, UserAuthDto> mapper,
                            PasswordEncoder encoder,
-                           JwtTokenProvider jwtProvider,
+                           JwtProvider jwtProvider,
                            PasswordValidator passwordValidator,
-                           UserDetailService userDetailService) {
+                           UserDetailsService userDetailsService) {
         this.userRepository = userRepository;
         this.mapper = mapper;
         this.encoder = encoder;
         this.jwtProvider = jwtProvider;
         this.passwordValidator = passwordValidator;
-        this.userDetailService = userDetailService;
+        this.userDetailsService = userDetailsService;
     }
 
     public AuthResponse createUser(UserAuthDto userAuthDto){
@@ -73,7 +73,7 @@ public class UserAuthService {
             userRepository.save(user);
             user = userRepository.findByEmail(user.getEmail()).get();
             logger.info("User created successfully: {}", userAuthDto.getEmail());
-            return generateAuthResponse(userAuthDto.getEmail(), user.getUserId());
+            return generateAuthResponse(user.getUserId());
         }
         else {
             logger.warn("User already exists: {}", userAuthDto.getEmail());
@@ -105,10 +105,10 @@ public class UserAuthService {
         logger.info("Authenticating user: {}", userAuthDto.getEmail());
 
         encodePassword(userAuthDto);
-        Optional<User> user = userRepository.findByEmailAndPassword(userAuthDto.getEmail(), userAuthDto.getPassword());
-        if (user.isPresent()){
+        Optional<User> user = userRepository.findByEmail(userAuthDto.getEmail());
+        if (user.isPresent() && encoder.matches(user.get().getPassword(), userAuthDto.getPassword())){
             logger.info("User authenticated successfully: {}", userAuthDto.getEmail());
-            return generateAuthResponse(user.get().getEmail(), user.get().getUserId());
+            return generateAuthResponse(user.get().getUserId());
         }
         else {
             logger.warn("Authentication failed for user: {}", userAuthDto.getEmail());
@@ -123,7 +123,7 @@ public class UserAuthService {
             String username = jwtProvider.getUsernameFromToken(refreshToken);
             User user = userRepository.findByEmail(username).orElseThrow();
             logger.info("Tokens refreshed successfully for user: {}", username);
-            return generateAuthResponse(username, user.getUserId());
+            return generateAuthResponse(user.getUserId());
         }
         else {
             logger.warn("Refresh token expired or invalid");
@@ -139,8 +139,8 @@ public class UserAuthService {
         user.setPassword(encoder.encode(user.getPassword()));
     }
 
-    private AuthResponse generateAuthResponse(String username, UUID userId){
-        Authentication authentication = userDetailService.createAuthentication(username);
+    private AuthResponse generateAuthResponse(UUID userId){
+        Authentication authentication = userDetailsService.createAuthentication(userId.toString());
         return new AuthResponse(
                 jwtProvider.generateAccessToken(authentication),
                 jwtProvider.generateRefreshToken(authentication),

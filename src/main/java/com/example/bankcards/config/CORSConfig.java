@@ -29,18 +29,11 @@ public class CORSConfig {
         ));
 
         configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
+                "Authorization"
         ));
 
         configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Disposition"
+                "Authorization"
         ));
 
         configuration.setAllowCredentials(true);

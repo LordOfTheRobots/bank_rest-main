@@ -1,5 +1,6 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.dto.CardEnteredByAdminDto;
 import com.example.bankcards.dto.CardEnteredDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.exception.NotEnoughMoney;
@@ -30,12 +31,10 @@ public class TransactionsService {
     private MyBankUtil bankUtil;
 
     @Transactional
-    public void makeTransaction(CardEnteredDto cardDto, String whereToTransact, UUID userId, Double howManyToTransact){
+    public void makeTransaction(CardEnteredDto cardDto, String whereToTransact, UUID userId, Float howManyToTransact){
         logger.info("Making transaction for user: {} to card: {}", userId, whereToTransact);
 
-        Optional<Card> cardToTransact = cardRepository.findByCardNumberAndUserUserId(whereToTransact, userId);
-
-        if (cardToTransact.isPresent()){
+        try {
             Card card = cardRepository.findByCardNumberAndExpireDate(
                     MaskCard.makeMaskOfCardNumber(cardDto.getCardNumber()),
                     cardDto.getExpirationDate()).orElseThrow(() -> new NotFound("Card not found"));
@@ -43,15 +42,11 @@ public class TransactionsService {
                 throw new NotEnoughMoney("Not Enough money to transact");
             }
             bankUtil.makeTransaction(card, whereToTransact, howManyToTransact);
-            //bankUtil.checkCardBalance(cardToTransact.get());//Эта строчка в итоговом проекте должна заменять нижнюю
-            cardToTransact.get().setBalance(cardToTransact.get().getBalance().
-                    add(BigDecimal.valueOf(howManyToTransact))); // По сути этой строчки не должно быть, но из-за того что у нас нет связи с банком мы делаем это вручную
+            //bankUtil.checkCardBalance(cardToTransact.get());
             cardRepository.save(card);
-            cardRepository.save(cardToTransact.get());
             logger.info("Transaction completed successfully");
-        }else {
-            logger.error("Card with number {} not found for user {}", whereToTransact, userId);
-            throw new NotFound("Card with this user as owner doesn't exist");
+        }catch (Exception e){
+            logger.error("There's a problem from bank side please try later");
         }
     }
 }

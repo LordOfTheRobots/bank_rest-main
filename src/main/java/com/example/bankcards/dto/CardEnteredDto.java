@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 public class CardEnteredDto {
@@ -14,10 +12,8 @@ public class CardEnteredDto {
     @Pattern(regexp = "^[0-9]{12,19}$", message = "Card number must contain 12 to 19 digits")
     private String cardNumber;
 
-    @Pattern(regexp = "^(0[1-9]|1[0-2])/[0-9]{2}$",
+    @Pattern(regexp = "^(0[1-9]|1[0-2]){2}/[0-9]{2}$",
             message = "Expire date must be in format MM/YY")
     @NotBlank
     private String expirationDate;
-
-    private UUID userId;
 }

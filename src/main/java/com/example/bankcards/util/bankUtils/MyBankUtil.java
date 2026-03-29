@@ -24,10 +24,10 @@ public class MyBankUtil implements BankUtil {
 
     @Override
     @Transactional
-    public void makeTransaction(Card card, String cardNumberWhereTransact, Double howManyToTransact) {
+    public void makeTransaction(Card card, String cardNumberWhereTransact, Float howManyToTransact) {
         logger.info("Making transaction from card {} to card {}", card.getCardNumber(), cardNumberWhereTransact);
 
-        if (!card.getCondition().getIsUsable()) {
+        if (!card.getCondition().getConditionName().getIsAvailable()) {
             logger.error("Card {} is not usable for transactions", card.getCardNumber());
             throw new IllegalStateException("Card is not usable for transactions");
         }

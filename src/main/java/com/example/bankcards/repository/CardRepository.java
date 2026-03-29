@@ -12,13 +12,12 @@ import java.util.UUID;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
-    @Query("SELECT c FROM Card c WHERE c.user.userId = :userId")
-    Page<Card> findByUserUserId(UUID userId, Pageable pageable);
+    @Query("SELECT c FROM Card c WHERE c.user.email = :email")
+    Page<Card> findByUserEmail(String email, Pageable pageable);
     Page<Card> findAll(Pageable pageable);
     Optional<Card> findById(Long id);
-    void deleteByCardNumberAndExpireDate(String cardNumber, String expireDate);
+    void deleteById(Long id);
     Optional<Card> findByCardNumberAndExpireDate(String cardNumber, String expireDate);
-    Boolean existsByCardNumber(String cardNumber);
     @Query("SELECT c FROM Card c WHERE c.cardNumber = :cardNumber AND c.user.userId = :userId")
     Optional<Card> findByCardNumberAndUserUserId(String cardNumber, UUID userId);
 }

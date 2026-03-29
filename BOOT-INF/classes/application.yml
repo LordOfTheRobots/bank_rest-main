@@ -1,5 +1,4 @@
 spring:
-
   application:
     name: bank-rest
     domain: bank.ru
@@ -64,7 +63,7 @@ springdoc:
     filter: true
     persist-authorization: true
 
-  packages-to-scan: com.example.bankcards.controller
+  packages-to-scan: com.example.bankcards.controller.api
   paths-to-match: /api/**
 
   group-configs:

@@ -18,6 +18,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicate(NotFound ex) {
+        logger.warn("Resource duplicating in DB: {}", ex.getMessage());
+        return new ErrorResponse("DUPLICATE", ex.getMessage());
+    }
+
     @ExceptionHandler(NotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(NotFound ex) {

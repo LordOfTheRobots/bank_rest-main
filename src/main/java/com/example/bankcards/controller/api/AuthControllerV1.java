@@ -1,11 +1,10 @@
-package com.example.bankcards.controller;
+package com.example.bankcards.controller.api;
 
 import com.example.bankcards.dto.AuthResponse;
 import com.example.bankcards.dto.UserAuthDto;
 import com.example.bankcards.service.UserAuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/v1/auth/")
 @RequiredArgsConstructor
 public class AuthControllerV1 {
     private static final Logger logger = LoggerFactory.getLogger(AuthControllerV1.class);

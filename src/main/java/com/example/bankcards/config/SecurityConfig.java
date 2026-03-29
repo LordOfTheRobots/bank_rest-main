@@ -1,8 +1,6 @@
 package com.example.bankcards.config;
 
 import com.example.bankcards.security.JwtAuthenticationFilter;
-import com.example.bankcards.security.JwtTokenProvider;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,8 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-
+    @Autowired
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Autowired
@@ -32,6 +28,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.
+                headers(
+                        headers -> headers.contentSecurityPolicy
+                        (csp -> csp.policyDirectives(
+                "default-src 'self'; " +
+                        "script-src 'self'; " +
+                        "object-src 'none'; " +
+                        "base-uri 'self';"
+        ))).
                 csrf(CsrfConfigurer::disable).
                 sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
@@ -48,11 +52,9 @@ public class SecurityConfig {
                                 requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll().
                                 anyRequest().authenticated()).
                 addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
+        
         return http.build();
     }
-
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
