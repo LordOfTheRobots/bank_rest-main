@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои карты | BankCards</title>
+  <script src="/js/interceptor.js"></script>
+  <link rel="stylesheet" href="/js/css/cards.css">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="container">
+
+  <section class="section">
+    <div class="section__header">
+      <h1 class="section__title">Мои карты</h1>
+      <p class="section__subtitle">Управляйте своими банковскими картами</p>
+    </div>
+
+    <div class="actions-bar">
+      <button id="btn-add-card" class="btn btn-primary btn-lg">
+        Добавить карту
+      </button>
+    </div>
+
+    <div id="cards-grid" class="cards-grid">
+      <div class="loading">Загрузка карт...</div>
+    </div>
+  </section>
+
+  <section id="txn-section" class="section hidden">
+    <div class="section__header">
+      <h2 id="txn-title" class="section__title">Транзакции</h2>
+      <button id="btn-close-txn" class="btn btn-ghost btn-sm">✕ Закрыть</button>
+    </div>
+
+    <div id="spending-chart" class="chart-container">
+      <div class="chart-loading">Загрузка статистики...</div>
+    </div>
+
+    <div id="txn-list" class="txn-list"></div>
+    <div id="txn-pagination" class="pagination"></div>
+  </section>
+
+</main>
+
+
+<dialog id="modal-add" class="modal">
+  <div class="modal__overlay" data-modal="modal-add"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <h3>Новая карта</h3>
+      <button class="modal__close" data-modal="modal-add" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal__body">
+      <form id="form-add-card" class="form">
+        <div class="form__group">
+          <label for="f-card-num" class="form__label">Номер карты <span class="form__required">*</span></label>
+          <input type="text" id="f-card-num" class="form__input"
+                 placeholder="1234 5678 9012 3456"
+                 required pattern="[0-9\s]{13,19}" maxlength="19"
+                 autocomplete="cc-number">
+          <small class="form__hint">16 цифр, без пробелов или с ними</small>
+        </div>
+        <div class="form__group">
+          <label for="f-card-exp" class="form__label">Срок действия <span class="form__required">*</span></label>
+          <input type="text" id="f-card-exp" class="form__input"
+                 placeholder="12/28" required pattern="[0-9]{2}/[0-9]{2}" maxlength="5"
+                 autocomplete="cc-exp">
+          <small class="form__hint">Формат: ММ/ГГ</small>
+        </div>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-ghost" data-modal="modal-add">Отмена</button>
+      <button class="btn btn-primary" id="btn-save-card">Создать карту</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-upload" class="modal">
+  <div class="modal__overlay" data-modal="modal-upload"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <button class="modal__close" data-modal="modal-upload" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal__body">
+      <div id="upload-area" class="upload-area">
+        <p class="upload-area__text">Нажмите или перетащите файл</p>
+        <small class="upload-area__hint">JPG/PNG, макс. 5 МБ</small>
+      </div>
+      <div id="upload-preview" class="upload-preview hidden">
+        <img id="preview-img" alt="Предпросмотр" class="upload-preview__img">
+        <button id="btn-remove-preview" class="upload-preview__remove" aria-label="Удалить">&times;</button>
+      </div>
+      <input type="file" id="f-upload-file" class="hidden" accept="image/jpeg,image/png">
+      <div id="upload-status" class="form__status"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-ghost" data-modal="modal-upload">Отмена</button>
+      <button class="btn btn-primary" id="btn-do-upload">Загрузить</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-new-txn" class="modal">
+  <div class="modal__overlay" data-modal="modal-new-txn"></div>
+  <div class="modal__content modal__content--sm">
+    <div class="modal__header">
+      <h3>Новая транзакция</h3>
+      <button class="modal__close" data-modal="modal-new-txn" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal__body">
+      <form id="form-new-txn" class="form" onsubmit="event.preventDefault(); doMakeTransaction();">
+        <div class="form__group">
+          <label for="f-txn-amount" class="form__label">Сумма <span class="form__required">*</span></label>
+          <div class="form__input-group">
+            <input type="text" id="f-txn-amount" class="form__input form__input--lg"
+                   placeholder="100.50" required pattern="[0-9]+([.,][0-9]+)?" inputmode="decimal">
+            <span class="form__input-suffix">₽</span>
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="f-txn-desc" class="form__label">Описание <span class="form__required">*</span></label>
+          <input type="text" id="f-txn-desc" class="form__input"
+                 placeholder="Перевод другу, оплата услуг..." required maxlength="255">
+        </div>
+        <div class="form__group">
+          <label for="f-txn-card-to" class="form__label">Номер карты получателя</label>
+          <input type="text" id="f-txn-card-to" class="form__input"
+                 placeholder="1234 5678 9012 3456" pattern="[0-9\s]{13,19}" maxlength="19">
+        </div>
+        <div id="txn-status" class="form__status"></div>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-ghost" data-modal="modal-new-txn">Отмена</button>
+      <button class="btn btn-primary" id="btn-do-txn">Отправить</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="toast-container" class="toast-container"></div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="/js/cards.js"></script>
+</body>
+</html>

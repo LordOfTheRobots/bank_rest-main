@@ -1,7 +1,9 @@
 package com.example.bankcards.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -23,12 +25,15 @@ public class CardCondition {
     private CardStatus conditionName;
 
     @Column(name = "timestamp")
+    @CreationTimestamp
     private Timestamp dateOfCondition;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = false)
+    @JsonBackReference
     private Card card;
 
     @Column(name = "comment")
     private String comment;
+
 }

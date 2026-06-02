@@ -1,42 +1,51 @@
 package com.example.bankcards.controller.api;
 
-import com.example.bankcards.dto.CardEnteredByAdminDto;
-import com.example.bankcards.dto.CardEnteredDto;
+import com.example.bankcards.dto.CardSpendingByDays;
+import com.example.bankcards.dto.MakeTransactionDto;
 import com.example.bankcards.exception.TransactedMoneyIsNegativeOrZero;
+import com.example.bankcards.security.UserPrincipal;
 import com.example.bankcards.service.TransactionsService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/v1/transaction/")
-@AllArgsConstructor
+@RequestMapping("/api/v1/transaction")
+@RequiredArgsConstructor
 public class TransactControllerV1 {
-    private static final Logger logger = LoggerFactory.getLogger(TransactControllerV1.class);
-
-    @Autowired
-    private TransactionsService transactionsService;
-
-    @PostMapping
-    @PreAuthorize("@cardService.isCardOwner(card.getCardId(), userId)")
-    @RequestMapping("/make-transaction")
-    public void makeTransaction(@Valid @RequestBody CardEnteredDto card,
-                                @RequestParam String whereToTransact,
-                                @RequestParam UUID userId,
-                                @RequestParam Float howManyToTransact){
-        logger.info("Making transaction for user: {} to card: {}", userId, whereToTransact);
-        if (howManyToTransact > 0){
-            transactionsService.makeTransaction(card, whereToTransact, userId, howManyToTransact);
+    private static final Logger APP_LOG = LoggerFactory.getLogger("APP_LOG");
+    private final TransactionsService transactionsService;
+    @PreAuthorize("@cardService.isCardOwner(#transactionDto.getCardId(), authentication.name)")
+    @PostMapping("/make-transaction")
+    public void makeTransaction(@AuthenticationPrincipal UserPrincipal auth,
+                                @Valid @RequestBody MakeTransactionDto transactionDto) {
+        if (transactionDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new TransactedMoneyIsNegativeOrZero("Amount must be positive");
         }
-        else {
-            throw new TransactedMoneyIsNegativeOrZero("Entered amount of money is negative or zero");
+        try {
+            APP_LOG.info("Making transaction from card {} to card {}, amount: {}",
+                    transactionDto.getCardId(), transactionDto.getCardToTransact(), transactionDto.getAmount());
+            transactionsService.makeTransaction(transactionDto);
+            APP_LOG.info("Transaction completed successfully");
+        } catch (Exception e) {
+            APP_LOG.error("Transaction failed: {}", e.getMessage(), e);
+            throw e;
         }
-        logger.info("Transaction completed successfully for user: {}", userId);
+    }
+    @PreAuthorize("@cardService.isCardOwner(#cardId, authentication.name)")
+    @GetMapping("/spending/by-days")
+    public ResponseEntity<CardSpendingByDays> getSpendingByDays(
+            @RequestParam Long cardId,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+        return ResponseEntity.ok(transactionsService.getSpendingByDays(cardId, startDate, endDate));
     }
 }

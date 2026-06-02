@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankCards — Управление картами и уведомлениями</title>
+  <link rel="stylesheet" href="/js/css/landing.css">
+</head>
+<body>
+<header>
+  <div class="logo">BankCards</div>
+  <nav id="auth-nav">
+    <a href="/auth/sign-in" class="btn btn-outline">Войти</a>
+    <a href="/auth/sign-up" class="btn btn-primary">Регистрация</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Безопасное управление банковскими картами</h1>
+    <p>Выпускайте, блокируйте и отслеживайте транзакции в реальном времени. Умные уведомления для каждого действия.</p>
+    <div class="hero-actions">
+      <a href="/auth/sign-up" class="btn btn-primary btn-lg">Начать бесплатно</a>
+      <a href="/auth/sign-in" class="btn btn-secondary btn-lg">Уже есть аккаунт</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature-card">
+      <h3>Управление картами</h3>
+      <p>Мгновенная блокировка, просмотр баланса и история операций в одном интерфейсе.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Умные уведомления</h3>
+      <p>Гибкая настройка каналов: Email, Telegram, SMS. Получайте только важные события.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Безопасность</h3>
+      <p>JWT-аутентификация, шифрование данных и контроль доступа на уровне ролей.</p>
+    </div>
+  </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="/js/landing.js"></script>
+</body>
+</html>

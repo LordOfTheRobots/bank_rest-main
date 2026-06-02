@@ -2,83 +2,110 @@ package com.example.bankcards.util.bankUtils;
 
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardCondition;
+import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.repository.CardConditionRepository;
+import com.example.bankcards.repository.CardRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MyBankUtil implements BankUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(MyBankUtil.class);
+    private static final Logger APP_LOG = LoggerFactory.getLogger("APP_LOG");
     private final Random random = new Random();
-
-    @Autowired
-    private CardConditionRepository cardConditionRepository;
+    private final CardRepository cardRepository;
+    private final CardConditionRepository cardConditionRepository;
 
     @Override
     @Transactional
-    public void makeTransaction(Card card, String cardNumberWhereTransact, Float howManyToTransact) {
-        logger.info("Making transaction from card {} to card {}", card.getCardNumber(), cardNumberWhereTransact);
+    public void makeTransaction(Card card, String cardNumberWhereTransact, BigDecimal howManyToTransact) {
+        APP_LOG.info("Processing transaction: card={}, target={}, amount={}",
+                card.getCardNumber(), cardNumberWhereTransact, howManyToTransact);
 
-        if (!card.getCondition().getConditionName().getIsAvailable()) {
-            logger.error("Card {} is not usable for transactions", card.getCardNumber());
+        if (card.getCondition() == null || card.getCondition().isEmpty() ||
+                !card.getCondition().get(0).getConditionName().getIsAvailable()) {
+            APP_LOG.error("Card {} is blocked or not usable for transactions", card.getCardNumber());
             throw new IllegalStateException("Card is not usable for transactions");
         }
-        logger.debug("Transaction amount: {}", howManyToTransact);
 
-        card.setBalance(card.getBalance().subtract(BigDecimal.valueOf(howManyToTransact)));
-        //checkCardBalance(card); //Эта строчка в итоговом проекте должна заменить предыдущую строчку, но без доступа к банку используем верхнюю
-        logger.info("Transaction completed successfully");
+        card.setBalance(card.getBalance().subtract(howManyToTransact));
+        APP_LOG.info("Transaction completed successfully. New balance: {}", card.getBalance());
     }
 
     @Override
+    @Transactional
     public Card checkCardCondition(Card card) {
-        logger.debug("Checking condition for card: {}", card.getCardNumber());
-        if (card.getCondition() == null){
-            logger.debug("Card condition is null, generating random condition");
-            card.setCondition(cardConditionRepository.findById(1 + random.nextInt(3)).get());
-            return card;
+        APP_LOG.debug("Checking condition for card: {}", card.getCardNumber());
+
+        Optional<CardCondition> latest = cardConditionRepository
+                .findLatestByCardId(card.getCardId());
+
+        if (latest.isEmpty()) {
+            CardCondition initial = CardCondition.builder()
+                    .card(card)
+                    .conditionName(CardStatus.ACTIVE)
+                    .comment("auto_created_on_add")
+                    .dateOfCondition(new Timestamp(System.currentTimeMillis()))
+                    .build();
+            cardRepository.save(card);
+            cardConditionRepository.save(initial);
+            var cardConditions = new ArrayList<CardCondition>();
+            cardConditions.add(initial);
+            card.setCondition(cardConditions);
         }
+
         return card;
     }
 
     @Override
+    @Transactional
     public Card checkCardBalance(Card card) {
-        logger.debug("Checking balance for card: {}", card.getCardNumber());
-        card.setBalance(BigDecimal.valueOf(1 + random.nextInt(100000)));
+        APP_LOG.debug("Checking/fetching balance for card: {}", card.getCardNumber());
+        // Временная заглушка для тестов без подключения к реальному банку
+        if (card.getBalance() == null || card.getBalance().compareTo(BigDecimal.ZERO) == 0) {
+            card.setBalance(BigDecimal.valueOf(10000 + random.nextInt(90000)));
+        }
+        cardRepository.save(card);
         return card;
     }
 
     @Override
     public void makeBankToken(Card card) {
-        logger.debug("Generating bank token for card: {}", card.getCardNumber());
+        APP_LOG.debug("Generating bank token for card: {}", card.getCardNumber());
         String token = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         card.setBankToken(token);
-        logger.debug("Bank token generated successfully");
     }
 
     @Override
     public void blockCard(Card card) {
-        logger.info("Blocking card: {}", card.getCardNumber());
-        card.setCondition(cardConditionRepository.findById(2).get());
-        logger.info("Card blocked successfully");
-    }
+        APP_LOG.info("Blocking card: {}", card.getCardNumber());
+        if (card.getCondition() != null || !card.getCondition().isEmpty()) {
+            if (card.getCardId() == null) {
+                card = cardRepository.save(card);
+            }
 
-    @Override
-    public void unblockCard(Card card) {
-        logger.info("Unblocking card: {}", card.getCardNumber());
-        if (!card.getCondition().getConditionName().equals("Expired")){
-            card.setCondition(cardConditionRepository.findById(1).get());
-            logger.info("Card unblocked successfully");
-        } else {
-            logger.warn("Cannot unblock expired card: {}", card.getCardNumber());
+            var cardCondition = CardCondition.builder()
+                    .conditionName(CardStatus.BLOCKED)
+                    .card(card)
+                    .comment("added")
+                    .build();
+
+            cardConditionRepository.save(cardCondition);
+
+            if (card.getCondition() == null) {
+                card.setCondition(new ArrayList<>());
+            }
+            card.getCondition().add(cardCondition);
         }
     }
 }

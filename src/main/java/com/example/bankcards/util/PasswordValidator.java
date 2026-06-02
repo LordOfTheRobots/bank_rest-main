@@ -13,19 +13,19 @@ import java.util.regex.Pattern;
 public class PasswordValidator {
     private static final Logger logger = LoggerFactory.getLogger(PasswordValidator.class);
 
-    @Value("${app.security.password.min-length}")
+    @Value("${spring.app.security.password.min-length}")
     private Integer minPasswordLength;
 
-    @Value("${app.security.password.require-lowercase}")
+    @Value("${spring.app.security.password.require-lowercase}")
     private Boolean lowercaseNeeded;
 
-    @Value("${app.security.password.require-uppercase}")
+    @Value("${spring.app.security.password.require-uppercase}")
     private Boolean uppercaseNeeded;
 
-    @Value("${app.security.password.require-numbers}")
+    @Value("${spring.app.security.password.require-numbers}")
     private Boolean numbersNeeded;
 
-    @Value("${app.security.password.require-special-chars}")
+    @Value("${spring.app.security.password.require-special-chars}")
     private Boolean specialCharsNeeded;
 
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile(".*[A-Z].*");

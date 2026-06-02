@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${status} + ' Ошибка'">Ошибка</title>
+    <link rel="stylesheet" href="/js/css/error.css">
+    <script src="/js/interceptor.js"></script>
+</head>
+<body>
+<div class="card">
+    <div class="code" th:classappend="${#strings.startsWith(status, '4')} ? 'client' : 'server'"
+         th:text="${status}">500</div>
+    <h1 th:text="${error} ?: 'Произошла ошибка'">Internal Server Error</h1>
+    <p th:text="${message} ?: 'Что-то пошло не так. Попробуйте обновить страницу или вернитесь позже.'">
+        Описание ошибки
+    </p>
+
+    <div class="meta" th:if="${path}">
+        <div>Путь: <span th:text="${path}"></span></div>
+        <div>Время: <span th:text="${timestamp}"></span></div>
+    </div>
+
+    <div class="actions">
+        <a href="/" class="btn btn-primary">На главную</a>
+    </div>
+    <div class="footer">Код ошибки: <span th:text="${status}"></span></div>
+</div>
+</body>
+</html>

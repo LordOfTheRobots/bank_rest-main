@@ -1,0 +1,90 @@
+spring:
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+        timeout: 10000
+        connectiontimeout: 5000
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Bank-DB
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  application:
+    name: bank-rest
+    domain: bank.ru
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  server:
+    port: 8080
+    servlet:
+      context-path: /api
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+  app:
+    notifications:
+      default-types:
+        - WELCOME
+        - PASSWORD_CHANGED
+        - SERVICE_REMINDER
+      default-language: en
+      enabled: true
+    security:
+      password:
+        min-length: 8
+        require-uppercase: true
+        require-lowercase: true
+        require-numbers: true
+        require-special-chars: true
+
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+      enabled: true
+
+    swagger-ui:
+      enabled: true
+      display-request-duration: true
+      operations-sorter: method
+      tags-sorter: alpha
+      filter: true
+      persist-authorization: true
+
+    packages-to-scan: com.example.bankcards.controller.api
+    paths-to-match: /api/**
+
+    group-configs:
+      - group: v1
+        paths-to-match: /api/v1/**
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000000
+  refresh-token:
+    expiration: 60480000000
+  header: "Authorization"
+  prefix: "Bearer "
+
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+  folder: bankcards/images

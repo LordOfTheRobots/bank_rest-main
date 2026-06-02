@@ -5,20 +5,17 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
 @Data
 public class CardToShowDto {
-
     private Long cardId;
-
     private String cardMask;
-
     private String expireDate;
-
     private BigDecimal balance;
-
     private CardCondition cardCondition;
+    private UUID owner;
 }

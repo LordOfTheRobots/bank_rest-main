@@ -12,5 +12,4 @@ import java.util.UUID;
 public class AuthResponse {
     private String jwt;
     private String refreshToken;
-    private UUID userIdForProfile;
 }

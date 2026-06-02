@@ -4,98 +4,117 @@ import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.DuplicateResourceException;
 import com.example.bankcards.exception.NotFound;
+import com.example.bankcards.repository.NotificationTypeRepository;
+import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import com.example.bankcards.util.mapper.DtoMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final Logger APP_LOG = LoggerFactory.getLogger("APP_LOG");
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
+    private final @Qualifier("userToUserDto") DtoMapper<UserDto, User> userUserDtoDtoMapper;
 
     public boolean isOwnerOrAdmin(UUID userId, UUID currentId) {
-        logger.debug("Checking if user {} is owner or admin for user {}", currentId, userId);
+        APP_LOG.debug("Checking if user {} is owner or admin for account {}", currentId, userId);
         return isOwner(userId, currentId) || isAdmin(currentId);
     }
 
-    public User findUserById(UUID userId){
-        logger.debug("Finding user by ID: {}", userId);
-        return userRepository.findByUserId(userId).orElseThrow(
-                () -> new NotFound("User not found"));
+    public User findUserById(UUID userId) {
+        APP_LOG.debug("Finding user by ID: {}", userId);
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFound("User not found"));
     }
 
     public boolean isOwner(UUID userId, UUID currentId) {
-        logger.debug("Checking if user {} is owner of account {}", currentId, userId);
+        APP_LOG.debug("Checking ownership: currentId={}, targetId={}", currentId, userId);
         User user = userRepository.findById(currentId)
                 .orElseThrow(() -> new NotFound("User not found"));
         return user.getUserId().equals(userId);
     }
 
     public boolean isAdmin(UUID currentId) {
-        logger.debug("Checking if user {} is admin", currentId);
+        APP_LOG.debug("Checking admin role for user: {}", currentId);
         User user = userRepository.findById(currentId)
                 .orElseThrow(() -> new NotFound("User not found"));
-        return user.getRole().getRoleName().contains("ADMIN");
+        return user.getRole() != null && user.getRole().getRoleName().contains("ADMIN");
     }
 
-    public void deleteUser(UUID userID){
-        logger.info("Deleting user: {}", userID);
-        userRepository.deleteByUserId(userID);
-        logger.info("User deleted successfully: {}", userID);
+    @Transactional
+    public void deleteUser(UUID userId) {
+        APP_LOG.info("Deleting user: {}", userId);
+        userRepository.deleteByUserId(userId);
+        APP_LOG.info("User deleted successfully: {}", userId);
     }
 
-    public Boolean userExist(UUID userId){
-        logger.debug("Checking if user exists: {}", userId);
+    public boolean userExist(UUID userId) {
+        APP_LOG.debug("Checking user existence: {}", userId);
         return userRepository.existsByUserId(userId);
     }
 
-    public Page<User> showUsers(Integer pageNumber, Integer pageSize){
-        logger.debug("Showing all cards, page: {}, size: {}", pageNumber, pageSize);
+    public Page<User> showUsers(Integer pageNumber, Integer pageSize) {
+        APP_LOG.debug("Fetching users page: {}, size: {}", pageNumber, pageSize);
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return userRepository.findAll(pageable);
     }
 
-    public void patchUser(UserDto dto)  {
-        User user = userRepository.findById(dto.getUserId()).orElseThrow(
-                () -> new NotFound("No user with this id"));
+    @Transactional
+    public void patchUser(UserDto dto) {
+        APP_LOG.info("Updating user: {}", dto.getUserId());
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new NotFound("No user with this id"));
 
         if (dto.getEmail() != null) {
-            if (!user.getEmail().equals(dto.getEmail()) &&
-                    userRepository.existsByEmail(dto.getEmail())) {
+            if (!user.getEmail().equals(dto.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
                 throw new DuplicateResourceException("Email already exists");
             }
             user.setEmail(dto.getEmail());
         }
 
         if (dto.getTelephoneNumber() != null) {
-            if (!user.getTelephoneNumber().equals(dto.getTelephoneNumber()) &&
-                    userRepository.existsByTelephoneNumber(dto.getTelephoneNumber())) {
+            if (userRepository.existsByTelephoneNumber(dto.getTelephoneNumber())) {
                 throw new DuplicateResourceException("Telephone already exists");
             }
             user.setTelephoneNumber(dto.getTelephoneNumber());
         }
 
         if (dto.getTelegramId() != null) {
-            if (!user.getTelegramId().equals(dto.getTelegramId()) &&
-                    userRepository.existsByTelegramId(dto.getTelegramId())) {
-                throw new DuplicateResourceException("Tg already exists");
+            if (!user.getTelegramId().equals(dto.getTelegramId()) && userRepository.existsByTelegramId(dto.getTelegramId())) {
+                throw new DuplicateResourceException("Telegram ID already exists");
             }
             user.setTelegramId(dto.getTelegramId());
         }
 
-        if (dto.getNotificationTypes() != null) {
+        if (dto.getRoleName() != null) {
+            user.setRole(roleRepository.findByRoleName(dto.getRoleName())
+                    .orElseThrow(() -> new NotFound("There's no such role")));
         }
+
+        if (dto.getNotificationNames() != null && !dto.getNotificationNames().isEmpty()) {
+            user.setNotificationTypes(notificationTypeRepository.findAllByCodeIn(dto.getNotificationNames()));
+        }
+
         userRepository.save(user);
+        APP_LOG.info("User updated successfully: {}", dto.getUserId());
+    }
+
+    public UserDto getUser(UUID userId){
+        return userUserDtoDtoMapper.map(userRepository.findByUserId(userId).orElseThrow(() ->
+                new NotFound("No such user")));
     }
 }

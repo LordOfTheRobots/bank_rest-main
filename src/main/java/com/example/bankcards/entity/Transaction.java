@@ -2,6 +2,7 @@ package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -23,16 +24,17 @@ public class Transaction {
     private BigDecimal amount;
 
     @Column(name = "transaction_date")
+    @CreationTimestamp
     private Timestamp transactionDate;
 
     @Column(name = "description")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User fromAccount;
+    @JoinColumn(name = "card_id", nullable = false)
+    private Card mainCard;
 
-    @Column(name = "to_account_id")
-    private String toAccount;
+    @Column(name = "secondary_card")
+    private String secondaryCard;
 
 }

@@ -8,10 +8,9 @@ import java.math.BigDecimal;
 
 public interface BankUtil {
     @Transactional
-    void makeTransaction(Card card, String cardNumberWhereTransact, Float howManyToTransact);
+    void makeTransaction(Card card, String cardNumberWhereTransact, BigDecimal howManyToTransact);
     Card checkCardCondition(Card card);
     Card checkCardBalance(Card card);
     void makeBankToken(Card card);
     void blockCard(Card card);
-    void unblockCard(Card card);
 }

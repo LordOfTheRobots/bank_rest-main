@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:remove="all"></head>
+<body>
+<footer th:fragment="footer" class="footer">
+  <div class="container footer__content">
+    <p>© <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2026</span> BankCards</p>
+  </div>
+</footer>
+</body>
+</html>

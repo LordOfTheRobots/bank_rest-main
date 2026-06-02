@@ -1,10 +1,13 @@
 package com.example.bankcards.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "cards")
@@ -19,7 +22,6 @@ public class Card {
     private Long cardId;
 
     @Column(name = "card_number", nullable = false, length = 19)
-    @Pattern(regexp = "^[0-9]{12,19}$", message = "Card number must contain 12 to 19 digits")
     private String cardNumber;
 
     @Column(name = "expire_date", nullable = false, length = 5)
@@ -30,14 +32,27 @@ public class Card {
     @Column(name = "balance")
     private BigDecimal balance;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "condition")
-    private CardCondition condition;
+    @OneToMany(mappedBy = "card", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OrderBy("dateOfCondition DESC")
+    @JsonManagedReference
+    private List<CardCondition> condition;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transactions")
+    @OrderBy("transactions DESC")
+    private List<Transaction> transactions;
+
+    @Column(name = "cloudinary_public_id", unique = true)
+    private String cloudinaryPublicId;
 
     @Column(name = "bank_token")
     private String bankToken;
+
+    @Transient
+    private CardCondition resolvedCondition;
 }

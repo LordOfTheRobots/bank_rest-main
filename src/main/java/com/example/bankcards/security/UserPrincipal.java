@@ -3,6 +3,7 @@ package com.example.bankcards.security;
 import com.example.bankcards.entity.User;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,11 +14,13 @@ import java.util.List;
 
 @Builder
 @Data
+@Slf4j
 public class UserPrincipal implements UserDetails {
     private User user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        log.info("Role: {}", user.getRole().getRoleName());
         return Collections.singleton(new SimpleGrantedAuthority(user.getRole().getRoleName()));
     }
 
@@ -28,7 +31,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return user.getUserId().toString();
     }
 
     @Override

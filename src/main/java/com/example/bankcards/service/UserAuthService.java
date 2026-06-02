@@ -2,67 +2,49 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.dto.AuthResponse;
 import com.example.bankcards.dto.UserAuthDto;
+import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.entity.NotificationType;
 import com.example.bankcards.entity.User;
-import com.example.bankcards.exception.PasswordIsNotValid;
-import com.example.bankcards.exception.RefreshTokenExpired;
-import com.example.bankcards.exception.UserAlreadyExist;
-import com.example.bankcards.exception.UserDoesNotExistOrPasswordIncorrect;
+import com.example.bankcards.exception.*;
+import com.example.bankcards.repository.NotificationTypeRepository;
+import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtProvider;
 import com.example.bankcards.security.UserDetailsService;
 import com.example.bankcards.util.PasswordValidator;
 import com.example.bankcards.util.mapper.DtoMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserAuthService {
-    private static final Logger logger = LoggerFactory.getLogger(UserAuthService.class);
+    private static final Logger USER_LOG = LoggerFactory.getLogger("USER_LOG");
 
-    @Autowired
     private final UserRepository userRepository;
-
-    @Autowired
     private final DtoMapper<User, UserAuthDto> mapper;
-
-    @Autowired
     private final PasswordEncoder encoder;
-
-    @Autowired
     private final JwtProvider jwtProvider;
-
-    @Autowired
     private final PasswordValidator passwordValidator;
-
-    @Autowired
     private final UserDetailsService userDetailsService;
+    private final RoleRepository roleRepository;
+    private final @Qualifier("userDtoToUser") DtoMapper<User, UserDto> fromUserDtoToUser;
+    private final NotificationTypeRepository notificationTypeRepository;
 
-    public UserAuthService(UserRepository userRepository,
-                           @Qualifier("userAuthMap") DtoMapper<User, UserAuthDto> mapper,
-                           PasswordEncoder encoder,
-                           JwtProvider jwtProvider,
-                           PasswordValidator passwordValidator,
-                           UserDetailsService userDetailsService) {
-        this.userRepository = userRepository;
-        this.mapper = mapper;
-        this.encoder = encoder;
-        this.jwtProvider = jwtProvider;
-        this.passwordValidator = passwordValidator;
-        this.userDetailsService = userDetailsService;
-    }
 
     public AuthResponse createUser(UserAuthDto userAuthDto){
-        logger.info("Creating new user with email: {}", userAuthDto.getEmail());
+        USER_LOG.info("Creating new user with email: {}", userAuthDto.getEmail());
         if (!passwordValidator.isValid(userAuthDto.getPassword())){
-            logger.warn("Password validation failed for user: {}", userAuthDto.getEmail());
+            USER_LOG.warn("Password validation failed for user: {}", userAuthDto.getEmail());
             throw new PasswordIsNotValid("Password is not valid by this requirements " +
                     passwordValidator.validateWithDetails(userAuthDto.getPassword()));
         }
@@ -70,81 +52,92 @@ public class UserAuthService {
         encodePassword(userAuthDto);
         if (!userRepository.existsByEmail(userAuthDto.getEmail())){
             User user = mapper.map(userAuthDto);
+            user.setRole(roleRepository.findByRoleName("USER").get());
+            user.setNotificationTypes(notificationTypeRepository.findAllByCodeIn(List.of(
+                    "SERVICE_REMINDER"
+            )));
             userRepository.save(user);
             user = userRepository.findByEmail(user.getEmail()).get();
-            logger.info("User created successfully: {}", userAuthDto.getEmail());
+            USER_LOG.info("User created successfully: {}", userAuthDto.getEmail());
             return generateAuthResponse(user.getUserId());
-        }
-        else {
-            logger.warn("User already exists: {}", userAuthDto.getEmail());
+        } else {
+            USER_LOG.warn("User already exists: {}", userAuthDto.getEmail());
             throw new UserAlreadyExist("User already exist");
         }
     }
 
-    public void createUser(User user){
-        logger.info("Creating new user with email: {}", user.getEmail());
-
-        if (!passwordValidator.isValid(user.getPassword())){
-            logger.warn("Password validation failed for user: {}", user.getEmail());
+    public void createUser(UserDto userDto){
+        USER_LOG.info("Creating new user with email: {}", userDto.getEmail());
+        if (!passwordValidator.isValid(userDto.getPassword())){
+            USER_LOG.warn("Password validation failed for user: {}", userDto.getEmail());
             throw new PasswordIsNotValid("Password is not valid by this requirements " +
-                    passwordValidator.validateWithDetails(user.getPassword()));
+                    passwordValidator.validateWithDetails(userDto.getPassword()));
+        }
+        encodePassword(userDto);
+
+        if (userDto.getEmail() != null) {
+            if (userRepository.existsByEmail(userDto.getEmail())) {
+                throw new DuplicateResourceException("Email already exists");
+            }
+        } else {
+            throw new NoIdentifier("There's no email");
         }
 
-        encodePassword(user);
-        if (!userRepository.existsByEmail(user.getEmail())){
-            userRepository.save(user);
-            logger.info("User created successfully: {}", user.getEmail());
+        if (userDto.getTelephoneNumber() != null) {
+            if (userRepository.existsByTelephoneNumber(userDto.getTelephoneNumber())) {
+                throw new DuplicateResourceException("Telephone already exists");
+            }
         }
-        else {
-            logger.warn("User already exists: {}", user.getEmail());
-            throw new UserAlreadyExist("User already exist");
+
+        if (userDto.getTelegramId() != null) {
+            if (userRepository.existsByTelegramId(userDto.getTelegramId())) {
+                throw new DuplicateResourceException("Tg already exists");
+            }
         }
+
+        if (userDto.getRoleName() != null){
+            userDto.setRole(roleRepository.findByRoleName(userDto.getRoleName()).orElseThrow(
+                    () -> new NotFound("There's no such role")
+            ));
+        }
+        userRepository.save(fromUserDtoToUser.map(userDto));
     }
 
     public AuthResponse authenticateUser(UserAuthDto userAuthDto){
-        logger.info("Authenticating user: {}", userAuthDto.getEmail());
+        USER_LOG.info("Authenticating user: {}", userAuthDto.getEmail());
 
-        encodePassword(userAuthDto);
-        Optional<User> user = userRepository.findByEmail(userAuthDto.getEmail());
-        if (user.isPresent() && encoder.matches(user.get().getPassword(), userAuthDto.getPassword())){
-            logger.info("User authenticated successfully: {}", userAuthDto.getEmail());
-            return generateAuthResponse(user.get().getUserId());
-        }
-        else {
-            logger.warn("Authentication failed for user: {}", userAuthDto.getEmail());
+        var userOpt = userRepository.findByEmail(userAuthDto.getEmail());
+        if (userOpt.isPresent() && encoder.matches(userAuthDto.getPassword(), userOpt.get().getPassword())){
+            USER_LOG.info("User authenticated successfully: {}", userAuthDto.getEmail());
+            return generateAuthResponse(userOpt.get().getUserId());
+        } else {
+            USER_LOG.warn("Authentication failed for user: {}", userAuthDto.getEmail());
             throw new UserDoesNotExistOrPasswordIncorrect("User Does Not Exist Or Password Incorrect");
         }
     }
 
     public AuthResponse refreshTokens(String refreshToken){
-        logger.debug("Refreshing tokens");
-
+        USER_LOG.debug("Refreshing tokens");
         if (jwtProvider.validateToken(refreshToken)){
             String username = jwtProvider.getUsernameFromToken(refreshToken);
             User user = userRepository.findByEmail(username).orElseThrow();
-            logger.info("Tokens refreshed successfully for user: {}", username);
+            USER_LOG.info("Tokens refreshed successfully for user: {}", username);
             return generateAuthResponse(user.getUserId());
-        }
-        else {
-            logger.warn("Refresh token expired or invalid");
+        } else {
+            USER_LOG.warn("Refresh token expired or invalid");
             throw new RefreshTokenExpired("Refresh token is expired sign in again");
         }
     }
 
-    private void encodePassword(UserAuthDto userAuthDto){
-        userAuthDto.setPassword(encoder.encode(userAuthDto.getPassword()));
-    }
-
-    private void encodePassword(User user){
-        user.setPassword(encoder.encode(user.getPassword()));
-    }
+    private void encodePassword(UserAuthDto userAuthDto){ userAuthDto.setPassword(encoder.encode(userAuthDto.getPassword())); }
+    private void encodePassword(UserDto userDto){ userDto.setPassword(encoder.encode(userDto.getPassword())); }
+    private void encodePassword(User user){ user.setPassword(encoder.encode(user.getPassword())); }
 
     private AuthResponse generateAuthResponse(UUID userId){
         Authentication authentication = userDetailsService.createAuthentication(userId.toString());
         return new AuthResponse(
                 jwtProvider.generateAccessToken(authentication),
-                jwtProvider.generateRefreshToken(authentication),
-                userId
+                jwtProvider.generateRefreshToken(authentication)
         );
     }
 }

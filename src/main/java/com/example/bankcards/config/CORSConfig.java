@@ -29,6 +29,8 @@ public class CORSConfig {
         ));
 
         configuration.setAllowedHeaders(Arrays.asList(
+                "Content-Type",
+                "Accept",
                 "Authorization"
         ));
 

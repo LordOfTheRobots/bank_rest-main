@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Новый перевод | BankCards</title>
+  <link rel="stylesheet" href="/js/css/admin.css">
+  <link rel="stylesheet" href="/js/css/transaction.css">
+  <script src="/js/interceptor.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <div class="logo">BankCards</div>
+  <nav>
+    <a href="/cards" class="btn btn-secondary">Мои карты</a>
+    <a href="/profile" class="btn btn-secondary">Профиль</a>
+    <button id="btn-logout" class="btn btn-danger">Выйти</button>
+  </nav>
+</header>
+
+<main class="container">
+  <div class="txn-card">
+    <h1>💸 Перевод средств</h1>
+    <form id="txn-form">
+      <div class="form-group">
+        <label for="src-card">С карты *</label>
+        <select id="src-card" required>
+          <option value="" disabled selected>Загрузка карт...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="dest-card">На карту / счёт *</label>
+        <input type="text" id="dest-card" placeholder="1234567890123456" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="amount">Сумма (₽) *</label>
+          <input type="number" id="amount" step="0.01" min="0.01" placeholder="100.00" required>
+        </div>
+        <div class="form-group">
+          <label for="desc">Описание</label>
+          <input type="text" id="desc" placeholder="За обед, аренда и т.д.">
+        </div>
+      </div>
+      <button type="submit" id="btn-submit" class="btn btn-primary btn-block">Отправить перевод</button>
+    </form>
+    <div id="status-msg" class="status-msg"></div>
+  </div>
+</main>
+
+<div id="alert-success" class="alert alert-success"></div>
+<div id="alert-error" class="alert alert-error"></div>
+
+<script src="/js/logout.js"></script>
+<script src="/js/transaction.js"></script>
+</body>
+</html>

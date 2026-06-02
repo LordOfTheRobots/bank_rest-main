@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
@@ -6,7 +5,7 @@ services:
     image: postgres:15
     container_name: bank-postgres
     environment:
-      POSTGRES_DB: Bank_DB
+      POSTGRES_DB: Bank-DB
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
     ports:

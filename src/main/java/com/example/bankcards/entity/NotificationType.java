@@ -13,19 +13,15 @@ import java.util.List;
 @AllArgsConstructor
 public class NotificationType {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer typeId;
+    @Column(name = "type_code", nullable = false)
+    private String code;
 
+    @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NotificationTemplateText> templates;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "type_supported_channels", joinColumns = @JoinColumn(name = "type_code"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "name")
-    private MessageType name;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "is_required")
-    private Boolean isRequired;
-
-    @ManyToMany(mappedBy = "notificationTypes")
-    private List<User> users;
+    @Column(name = "channel")
+    private List<DeliveryChannel> supportedChannels;
 }

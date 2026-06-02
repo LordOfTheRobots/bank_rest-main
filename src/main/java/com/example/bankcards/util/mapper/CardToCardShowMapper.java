@@ -2,6 +2,7 @@ package com.example.bankcards.util.mapper;
 
 import com.example.bankcards.dto.CardToShowDto;
 import com.example.bankcards.entity.Card;
+import com.example.bankcards.entity.CardCondition;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,8 @@ public class CardToCardShowMapper implements DtoMapper<CardToShowDto, Card> {
                 cardMask(card.getCardNumber()).
                 expireDate(card.getExpireDate()).
                 balance(card.getBalance()).
-                cardCondition(card.getCondition()).
+                cardCondition(card.getResolvedCondition()).
+                owner(card.getUser().getUserId()).
                 build();
     }
 }

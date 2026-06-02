@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface CardRepository extends JpaRepository<Card, Long> {
     @Query("SELECT c FROM Card c WHERE c.user.email = :email")
     Page<Card> findByUserEmail(String email, Pageable pageable);
+    @Query("SELECT c FROM Card c WHERE c.user.userId = :id")
+    Page<Card> findByUserId(UUID id, Pageable pageable);
     Page<Card> findAll(Pageable pageable);
     Optional<Card> findById(Long id);
     void deleteById(Long id);
